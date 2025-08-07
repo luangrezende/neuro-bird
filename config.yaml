@@ -77,7 +77,7 @@ vision:
       fps_value: [55, 25]
       score_label: [10, 50]
       score_value: [70, 50]
-      ocr_time_label: [280, 25]
+      ocr_time_label: [235, 25]
       ocr_time_value: [325, 25]
       
     # Rectangle properties
@@ -95,7 +95,6 @@ vision:
     test_settings:
       frame_increment: 1
       ms_conversion_factor: 1000
-      ocr_count_increment: 1
       recent_times_average: 10
       quit_key: 'q'
       key_wait_ms: 1

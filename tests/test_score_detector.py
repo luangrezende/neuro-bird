@@ -1,9 +1,9 @@
 import cv2
-import numpy as np
 import sys
 import os
 import mss
 import time
+import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'modules'))
 from vision import ScoreDetector
@@ -32,10 +32,8 @@ def main():
     
     frame_count = initial_confidence
     start_time = time.time()
-    last_score = invalid_score
     last_bbox = None
     ocr_times = []
-    ocr_count = initial_confidence
     fps_target = config.get('vision.screen_capture.fps_target', fps_target_fallback)
     
     try:
@@ -59,12 +57,10 @@ def main():
                 
                 ocr_time = (ocr_end - ocr_start) * test_settings['ms_conversion_factor']
                 ocr_times.append(ocr_time)
-                ocr_count += test_settings['ocr_count_increment']
                 
                 if bbox is not None:
-                    last_score = score
                     last_bbox = bbox
-                    renderer.update_score(last_score)
+                    renderer.update_score(score)
             
             if last_bbox is not None:
                 x, y, w, h = last_bbox
