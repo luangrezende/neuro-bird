@@ -8,9 +8,11 @@ import time
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'modules'))
 from vision import ScoreDetector
 from utils.config import config
+from visual_renderer import VisualRenderer
 
 def main():
     detector = ScoreDetector()
+    renderer = VisualRenderer()
     
     sct = mss.mss()
     
@@ -27,11 +29,6 @@ def main():
     initial_confidence = display_config['defaults']['initial_confidence']
     fps_target_fallback = display_config['defaults']['fps_target_fallback']
     test_settings = display_config['test_settings']
-    
-    print(f"Using capture region: {capture_region}")
-    print(f"App: {config.get('app.name')} v{config.get('app.version')}")
-    print(f"GPU enabled: {config.get('vision.ocr.gpu')}")
-    print("Press 'q' to quit")
     
     frame_count = initial_confidence
     start_time = time.time()
@@ -53,17 +50,7 @@ def main():
             zero_threshold = initial_confidence
             if elapsed_time > zero_threshold:
                 fps = frame_count / elapsed_time
-                
-                colors = display_config['colors']
-                font = getattr(cv2, display_config['font_face'])
-                font_size = display_config['font_sizes']['medium']
-                font_thickness = display_config['font_thickness']
-                fps_pos = display_config['text_positions']
-                
-                cv2.putText(annotated_frame, "FPS: ", fps_pos['fps_label'], 
-                           font, font_size, colors['green'], font_thickness)
-                cv2.putText(annotated_frame, f"{fps:.1f}", fps_pos['fps_value'], 
-                           font, font_size, colors['red'], font_thickness)
+                renderer.update_fps(fps)
             
             if frame_count % fps_target == 0:
                 ocr_start = time.time()
@@ -77,6 +64,7 @@ def main():
                 if bbox is not None:
                     last_score = score
                     last_bbox = bbox
+                    renderer.update_score(last_score)
             
             if last_bbox is not None:
                 x, y, w, h = last_bbox
@@ -94,34 +82,14 @@ def main():
                 cv2.putText(annotated_frame, label_text, (x, y + h + label_offset[1]), 
                            font, font_size, color, font_thickness)
             
-            if last_score >= -invalid_score:
-                colors = display_config['colors']
-                font = getattr(cv2, display_config['font_face'])
-                font_size = display_config['font_sizes']['medium']
-                font_thickness = display_config['font_thickness']
-                score_pos = display_config['text_positions']
-                
-                cv2.putText(annotated_frame, "Score: ", score_pos['score_label'], 
-                           font, font_size, colors['green'], font_thickness)
-                cv2.putText(annotated_frame, f"{last_score}", score_pos['score_value'], 
-                           font, font_size, colors['red'], font_thickness)
-            
             if ocr_times:
                 recent_times = test_settings['recent_times_average']
                 avg_ocr_time = sum(ocr_times[-recent_times:]) / min(len(ocr_times), recent_times)
-                
-                colors = display_config['colors']
-                font = getattr(cv2, display_config['font_face'])
-                font_size = display_config['font_sizes']['medium']
-                font_thickness = display_config['font_thickness']
-                ocr_pos = display_config['text_positions']
-                
-                cv2.putText(annotated_frame, "OCR: ", ocr_pos['ocr_time_label'], 
-                           font, font_size, colors['green'], font_thickness)
-                cv2.putText(annotated_frame, f"{avg_ocr_time:.1f}ms", ocr_pos['ocr_time_value'], 
-                           font, font_size, colors['red'], font_thickness)
+                renderer.update_ocr_time(avg_ocr_time)
             
-            window_title = display_config['window_title']
+            renderer.draw_all_info(annotated_frame)
+            
+            window_title = renderer.get_window_title()
             cv2.imshow(window_title, annotated_frame)
             
             key_wait = test_settings['key_wait_ms']

@@ -22,12 +22,14 @@ class ScoreDetector:
             verbose=ocr_config['verbose']
         )
         
-        display_config = config.get_section('vision')['display']
-        self.last_valid_score = display_config['defaults']['invalid_score']
+        defaults = config.get_section('vision')['display']['defaults']
+        self.last_valid_score = defaults['invalid_score']
         self.last_valid_bbox = None
         
         self.detection_config = config.get_section('vision')['score_detection']
-        self.display_config = display_config
+        self.invalid_score = defaults['invalid_score']
+        self.initial_confidence = defaults['initial_confidence']
+        self.detail_level = defaults['detail_level']
         
     def extract_score_with_ocr(self, frame):
         h, w = frame.shape[:2]
@@ -59,11 +61,11 @@ class ScoreDetector:
             width_ths=ocr_config['width_threshold'],
             height_ths=ocr_config['height_threshold'],
             min_size=ocr_config['min_size'],
-            detail=self.display_config['defaults']['detail_level']
+            detail=self.detail_level
         )
         
         best_score_result = None
-        best_confidence = self.display_config['defaults']['initial_confidence']
+        best_confidence = self.initial_confidence
         
         for (bbox, text, confidence) in results:
             conf_value = float(confidence)
@@ -91,42 +93,11 @@ class ScoreDetector:
             self.last_valid_bbox = bbox
             return score, bbox
         
-        invalid_score = self.display_config['defaults']['invalid_score']
-        if self.last_valid_score >= -invalid_score:
+        if self.last_valid_score >= -self.invalid_score:
             return self.last_valid_score, self.last_valid_bbox
         
-        return invalid_score, None
-    
-    def detect_and_draw_score(self, frame):
-        annotated_frame = frame.copy()
-        
-        score, bbox = self.extract_score_with_ocr(frame)
-        
-        if bbox is not None:
-            x, y, w, h = bbox
-            colors = self.display_config['colors']
-            thickness = self.display_config['rectangle_thickness']
-            cv2.rectangle(annotated_frame, (x, y), (x + w, y + h), colors['green'], thickness)
-            
-            invalid_score = self.display_config['defaults']['invalid_score']
-            if score >= -invalid_score:
-                label = f"Score: {score}"
-                color = colors['green']
-            else:
-                label = "Score region"
-                color = colors['yellow']
-            
-            font = getattr(cv2, self.display_config['font_face'])
-            font_size = self.display_config['font_sizes']['medium']
-            font_thickness = self.display_config['font_thickness']
-            label_offset = self.display_config['score_label_offset']
-                
-            cv2.putText(annotated_frame, label, (x + label_offset[0], y - label_offset[1]), 
-                       font, font_size, color, font_thickness)
-        
-        return annotated_frame, score
+        return self.invalid_score, None
     
     def cleanup(self):
-        invalid_score = self.display_config['defaults']['invalid_score']
-        self.last_valid_score = invalid_score
+        self.last_valid_score = self.invalid_score
         self.last_valid_bbox = None
