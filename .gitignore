@@ -169,3 +169,73 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Project specific ignores for neuro-bird
+
+# Saved models and training data
+assets/models/
+assets/saved_models/
+*.pkl
+*.pickle
+*.model
+*.weights
+*.h5
+*.pt
+*.pth
+
+# Training logs and outputs
+logs/
+training_logs/
+*.log
+
+# Game recordings and screenshots
+assets/videos/
+assets/screenshots/
+*.mp4
+*.avi
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# NEAT configuration outputs
+neat-checkpoint-*
+winner.pkl
+
+# Temporary training files
+temp/
+tmp/
+
+# Executable files
+*.exe
+*.msi
+*.deb
+*.rpm
+*.dmg
+*.app
+*.apk
+
+# Compiled binaries
+*.bin
+*.com
+*.class
+*.dll
+*.o
+*.obj
+
+# Game engine specific
+*.unity
+*.unitypackage
+
+# Performance profiling
+*.prof
+*.profile
+
+# Large datasets
+datasets/
+data/
+*.csv
+*.json
+*.xml
+*.npy
+*.npz
