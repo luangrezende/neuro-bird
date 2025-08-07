@@ -7,6 +7,7 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from utils.config import config
+from env import GameState
 
 class ScoreDetector:
     def __init__(self):
@@ -15,6 +16,8 @@ class ScoreDetector:
         if not torch.cuda.is_available():
             raise RuntimeError("GPU not available but required. Install PyTorch with CUDA.")
         
+        self.game_state = GameState()
+        
         ocr_config = config.get_section('vision')['ocr']
         self.reader = easyocr.Reader(
             ocr_config['languages'], 
@@ -22,16 +25,11 @@ class ScoreDetector:
             verbose=ocr_config['verbose']
         )
         
-        defaults = config.get_section('vision')['display']['defaults']
-        self.last_valid_score = defaults['invalid_score']
-        self.last_valid_bbox = None
-        
         self.detection_config = config.get_section('vision')['score_detection']
-        self.invalid_score = defaults['invalid_score']
-        self.initial_confidence = defaults['initial_confidence']
-        self.detail_level = defaults['detail_level']
+        invalid_score = config.get_section('vision')['display']['defaults']['invalid_score']
+        self.invalid_score = invalid_score
         
-    def extract_score_with_ocr(self, frame):
+    def detect_and_update(self, frame):
         h, w = frame.shape[:2]
         
         score_region_height = self.detection_config['region_height']
@@ -60,17 +58,17 @@ class ScoreDetector:
         roi_resized = cv2.resize(roi, None, fx=scale_factor, fy=scale_factor, interpolation=interp_method)
         
         ocr_config = config.get_section('vision')['ocr']
+        detail_level = config.get_section('vision')['display']['defaults']['detail_level']
         results = self.reader.readtext(
             roi_resized,
             text_threshold=ocr_config['text_threshold'],
             width_ths=ocr_config['width_threshold'],
             height_ths=ocr_config['height_threshold'],
             min_size=ocr_config['min_size'],
-            detail=self.detail_level
+            detail=detail_level
         )
         
-        best_score_result = None
-        best_confidence = self.initial_confidence
+        best_score = self.invalid_score
         
         for (bbox, text, confidence) in results:
             conf_value = float(confidence)
@@ -81,29 +79,8 @@ class ScoreDetector:
                 score_value = int(score_match.group(regex_group))
                 score_range = self.detection_config['score_range']
                 if score_range['min'] <= score_value <= score_range['max']:
-                    if conf_value > ocr_config['confidence_threshold'] and (best_score_result is None or conf_value > best_confidence):
-                        points = np.array(bbox).astype(int)
-                        points = points // scale_factor
-                        
-                        x = min(points[:, 0]) + start_x
-                        y = min(points[:, 1]) + start_y
-                        w = max(points[:, 0]) - min(points[:, 0])
-                        h = max(points[:, 1]) - min(points[:, 1])
-                        
-                        best_score_result = (score_value, (x, y, w, h), conf_value)
-                        best_confidence = conf_value
+                    if conf_value > ocr_config['confidence_threshold']:
+                        best_score = score_value
+                        break
         
-        if best_score_result:
-            score, bbox, _ = best_score_result
-            self.last_valid_score = score
-            self.last_valid_bbox = bbox
-            return score, bbox
-        
-        if self.last_valid_score >= -self.invalid_score:
-            return self.last_valid_score, self.last_valid_bbox
-        
-        return self.invalid_score, None
-    
-    def cleanup(self):
-        self.last_valid_score = self.invalid_score
-        self.last_valid_bbox = None
+        self.game_state.update_score(best_score)

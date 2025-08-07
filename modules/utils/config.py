@@ -60,7 +60,7 @@ class Config:
         return self._config_data
     
     def validate_config(self) -> bool:
-        required_sections = ['app', 'vision', 'agent', 'training', 'environment', 'utils']
+        required_sections = ['vision', 'utils']
         
         for section in required_sections:
             if section not in self._config_data:

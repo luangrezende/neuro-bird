@@ -1,12 +1,5 @@
-# Neuro-Bird Configuration File
-# Configuration parameters for modules and application components
-
-# Application Settings
-app:
-  name: "Neuro-Bird"
-  version: "1.0.0"
-  debug: false
-  log_level: "INFO"
+# Neuro-Bird Configuration
+# Streamlined configuration with only actively used parameters
 
 # Vision Module Configuration
 vision:
@@ -44,12 +37,6 @@ vision:
       max: 50
     pattern: "score\\s*:?\\s*(\\d+)"
     regex_group: 1  # Which regex group contains the score number
-    
-  # Frame processing
-  frame_processing:
-    target_size: [84, 84]
-    normalize: true
-    color_space: "BGR"
     
   # UI/Display settings
   display:
@@ -104,131 +91,10 @@ vision:
       frame_increment: 1
       ms_conversion_factor: 1000
       recent_times_average: 10
+      ocr_interval: 60  # Run OCR every N frames (lower = more frequent)
       quit_key: 'q'
       key_wait_ms: 1
       key_mask: 0xFF
-
-# Agent Module Configuration (NEAT)
-agent:
-  neat:
-    # Population settings
-    population_size: 100
-    max_generations: 200
-    fitness_threshold: 1000
-    
-    # Network topology
-    network:
-      num_inputs: 4  # bird_y, pipe_x, pipe_top_y, pipe_bottom_y
-      num_outputs: 1  # jump or not
-      num_hidden: 0  # start with no hidden nodes
-      
-    # Activation functions
-    activation:
-      default: "sigmoid"
-      mutate_rate: 0.1
-      options: ["sigmoid", "tanh", "relu"]
-      
-    # Connection settings
-    connections:
-      enabled_default: true
-      enabled_mutate_rate: 0.05
-      
-    # Node settings
-    nodes:
-      add_probability: 0.2
-      delete_probability: 0.2
-      
-    # Mutation rates
-    mutation:
-      bias_init_mean: 0.0
-      bias_init_stdev: 1.0
-      bias_mutate_rate: 0.7
-      bias_mutate_power: 0.5
-      weight_init_mean: 0.0
-      weight_init_stdev: 1.0
-      weight_mutate_rate: 0.8
-      weight_mutate_power: 0.5
-      
-    # Compatibility settings
-    compatibility:
-      disjoint_coefficient: 1.0
-      weight_coefficient: 0.5
-      compatibility_threshold: 3.0
-      
-    # Species settings
-    species:
-      max_stagnation: 20
-      elitism: 2
-      survival_threshold: 0.2
-
-# Training Module Configuration
-training:
-  # Training parameters
-  params:
-    timeout_seconds: 30  # max time per individual
-    parallel_evaluation: true
-    num_workers: 4
-    save_interval: 10  # save every N generations
-    
-  # Fitness calculation
-  fitness:
-    score_weight: 100
-    time_weight: 1
-    bonus:
-      first_pipe: 50
-      distance_traveled: 0.1
-      
-  # Evaluation settings
-  evaluation:
-    runs_per_individual: 3  # multiple runs for consistency
-    take_best: true  # use best run for fitness
-    
-  # Checkpointing
-  checkpoint:
-    enabled: true
-    interval: 5  # every 5 generations
-    keep_last: 10  # keep last 10 checkpoints
-    
-  # Early stopping
-  early_stopping:
-    enabled: true
-    patience: 50  # generations without improvement
-    min_improvement: 1.0
-
-# Environment Module Configuration  
-environment:
-  # Game interaction
-  game:
-    executable_name: "flappy-bird.exe"
-    window_title: "Flappy Bird"
-    startup_delay: 2.0  # seconds to wait after game start
-    
-  # Input simulation
-  input:
-    jump_key: "space"
-    jump_duration: 0.1  # seconds
-    input_delay: 0.05  # delay between inputs
-    
-  # Game state detection
-  game_state:
-    death_detection:
-      enabled: true
-      color_threshold: [100, 100, 100]  # RGB values
-      region:
-        x: 200
-        y: 300
-        width: 200
-        height: 100
-        
-    restart_detection:
-      enabled: true
-      timeout: 5.0  # seconds to wait for restart
-      
-  # Performance monitoring
-  performance:
-    fps_monitoring: true
-    lag_detection: true
-    max_lag_ms: 100
 
 # Utilities Configuration
 utils:
@@ -241,68 +107,3 @@ utils:
     log_dir: "logs"
     max_log_size_mb: 10
     backup_count: 5
-    
-  # File management
-  files:
-    models_dir: "assets/models"
-    checkpoints_dir: "assets/checkpoints"
-    screenshots_dir: "assets/screenshots"
-    videos_dir: "assets/videos"
-    create_dirs: true
-    
-  # Performance profiling
-  profiling:
-    enabled: false
-    output_dir: "assets/profiling"
-    memory_tracking: true
-    time_tracking: true
-
-# GPU and Hardware Settings
-hardware:
-  # CUDA settings
-  cuda:
-    device: 0  # GPU device index
-    memory_fraction: 0.8  # fraction of GPU memory to use
-    allow_growth: true
-    
-  # CPU settings
-  cpu:
-    num_threads: -1  # -1 for auto-detect
-    priority: "normal"  # normal, high, realtime
-    
-  # Memory settings
-  memory:
-    max_population_memory_gb: 4
-    garbage_collection: true
-    gc_threshold: 1000
-
-# Display and UI Settings
-display:
-  # Visualization
-  visualization:
-    enabled: true
-    show_fps: true
-    show_generation: true
-    show_best_fitness: true
-    show_population_stats: true
-    
-  # Window settings
-  window:
-    title: "Neuro-Bird Training"
-    width: 800
-    height: 600
-    resizable: true
-    
-  # Colors (BGR format for OpenCV)
-  colors:
-    score_box: [0, 255, 0]      # green
-    fps_text: [0, 255, 0]       # green
-    score_text: [0, 0, 255]     # red
-    ocr_time: [255, 255, 0]     # cyan
-    background: [0, 0, 0]       # black
-    
-  # Fonts
-  fonts:
-    primary: "FONT_HERSHEY_SIMPLEX"
-    size: 0.5
-    thickness: 1

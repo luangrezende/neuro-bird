@@ -32,9 +32,8 @@ def main():
     
     frame_count = initial_confidence
     start_time = time.time()
-    last_bbox = None
     ocr_times = []
-    fps_target = config.get('vision.screen_capture.fps_target', fps_target_fallback)
+    ocr_interval = test_settings['ocr_interval']
     
     try:
         while True:
@@ -50,33 +49,18 @@ def main():
                 fps = frame_count / elapsed_time
                 renderer.update_fps(fps)
             
-            if frame_count % fps_target == 0:
+            if frame_count % ocr_interval == 0:
                 ocr_start = time.time()
-                score, bbox = detector.extract_score_with_ocr(frame)
+                detector.detect_and_update(frame)
                 ocr_end = time.time()
                 
                 ocr_time = (ocr_end - ocr_start) * test_settings['ms_conversion_factor']
                 ocr_times.append(ocr_time)
-                
-                if bbox is not None:
-                    last_bbox = bbox
-                    renderer.update_score(score)
             
-            if last_bbox is not None:
-                x, y, w, h = last_bbox
-                colors = display_config['colors']
-                thickness = display_config['rectangle_thickness']
-                cv2.rectangle(annotated_frame, (x, y), (x + w, y + h), colors['green'], thickness)
-                
-                label_text = "Score region"
-                color = colors['green']
-                font = getattr(cv2, display_config['font_face'])
-                font_size = display_config['font_sizes']['small']
-                font_thickness = display_config['font_thickness']
-                label_offset = display_config['score_label_offset']
-                
-                cv2.putText(annotated_frame, label_text, (x, y + h + label_offset[1]), 
-                           font, font_size, color, font_thickness)
+            score = detector.game_state.get_score()
+            renderer.update_score(score)
+            
+            renderer.draw_detection_region(annotated_frame)
             
             if ocr_times:
                 recent_times = test_settings['recent_times_average']
@@ -98,7 +82,6 @@ def main():
         pass
     
     finally:
-        detector.cleanup()
         cv2.destroyAllWindows()
 
 if __name__ == "__main__":
