@@ -37,11 +37,16 @@ class ScoreDetector:
         score_region_height = self.detection_config['region_height']
         score_region_width = self.detection_config['region_width']
         start_y_offset = self.detection_config['start_y_offset']
+        start_x_offset = self.detection_config['start_x_offset']
         scale_factor = self.detection_config['scale_factor']
         
         start_y = max(0, start_y_offset)
         end_y = min(h, start_y + score_region_height)
-        start_x = max(0, (w - score_region_width) // 2)
+        
+        if start_x_offset == -1:
+            start_x = max(0, (w - score_region_width) // 2)
+        else:
+            start_x = max(0, start_x_offset)
         
         roi = frame[start_y:end_y, start_x:start_x + score_region_width]
         

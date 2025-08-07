@@ -1,5 +1,5 @@
 # Neuro-Bird Configuration File
-# All parameters for modules and application components
+# Configuration parameters for modules and application components
 
 # Application Settings
 app:
@@ -21,25 +21,26 @@ vision:
     
   # OCR settings
   ocr:
-    languages: ["pt", "en"]
+    languages: ["en"]
     gpu: true
     verbose: false
-    confidence_threshold: 0.1
-    text_threshold: 0.1
+    confidence_threshold: 0.3
+    text_threshold: 0.3
     width_threshold: 0.5
     height_threshold: 0.5
     min_size: 5
     
   # Score detection
   score_detection:
-    region_height: 150
-    region_width: 400
-    start_y_offset: 20
-    scale_factor: 5
-    interpolation: "LANCZOS4"
+    region_height: 100
+    region_width: 120
+    start_y_offset: 100
+    start_x_offset: 0  # -1 for center, or specific pixel value from left
+    scale_factor: 3
+    interpolation: "LINEAR" # also can use LANCZOS4, CUBIC and NEAREST
     score_range:
       min: 0
-      max: 99
+      max: 50
     pattern: "score\\s*:?\\s*(\\d+)"
     
   # Frame processing

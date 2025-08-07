@@ -22,9 +22,40 @@ class VisualRenderer:
         self.current_ocr_time = ocr_time
         
     def draw_all_info(self, frame):
+        self.draw_detection_region(frame)
         self.draw_fps(frame, self.current_fps)
         self.draw_score_info(frame, self.current_score)
         self.draw_ocr_time(frame, self.current_ocr_time)
+        
+    def draw_detection_region(self, frame):
+        detection_config = config.get_section('vision')['score_detection']
+        colors = self.display_config['colors']
+        
+        h, w = frame.shape[:2]
+        
+        region_height = detection_config['region_height']
+        region_width = detection_config['region_width']
+        start_y_offset = detection_config['start_y_offset']
+        start_x_offset = detection_config['start_x_offset']
+        
+        start_y = max(0, start_y_offset)
+        end_y = min(h, start_y + region_height)
+        
+        if start_x_offset == -1:
+            start_x = max(0, (w - region_width) // 2)
+        else:
+            start_x = max(0, start_x_offset)
+            
+        end_x = min(w, start_x + region_width)
+        
+        cv2.rectangle(frame, (start_x, start_y), (end_x, end_y), colors['yellow'], 1)
+        
+        font = getattr(cv2, self.display_config['font_face'])
+        font_size = self.display_config['font_sizes']['small']
+        font_thickness = self.display_config['font_thickness']
+        
+        cv2.putText(frame, "Score Detection Region", (start_x, start_y - 5), 
+                   font, font_size, colors['yellow'], font_thickness)
         
     def draw_fps(self, frame, fps):
         colors = self.display_config['colors']
