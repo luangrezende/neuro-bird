@@ -1,5 +1,3 @@
-# Modules package
-
 from . import vision
 from . import agent
 from . import env

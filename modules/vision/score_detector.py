@@ -2,6 +2,11 @@ import cv2
 import numpy as np
 import easyocr
 import re
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from utils.config import config
 
 class ScoreDetector:
     def __init__(self):
@@ -10,46 +15,65 @@ class ScoreDetector:
         if not torch.cuda.is_available():
             raise RuntimeError("GPU not available but required. Install PyTorch with CUDA.")
         
-        self.reader = easyocr.Reader(['pt', 'en'], gpu=True, verbose=False)
-        self.last_valid_score = -1
+        ocr_config = config.get_section('vision')['ocr']
+        self.reader = easyocr.Reader(
+            ocr_config['languages'], 
+            gpu=ocr_config['gpu'], 
+            verbose=ocr_config['verbose']
+        )
+        
+        display_config = config.get_section('vision')['display']
+        self.last_valid_score = display_config['defaults']['invalid_score']
         self.last_valid_bbox = None
+        
+        self.detection_config = config.get_section('vision')['score_detection']
+        self.display_config = display_config
         
     def extract_score_with_ocr(self, frame):
         h, w = frame.shape[:2]
         
-        score_region_height = 150
-        score_region_width = 400
+        score_region_height = self.detection_config['region_height']
+        score_region_width = self.detection_config['region_width']
+        start_y_offset = self.detection_config['start_y_offset']
+        scale_factor = self.detection_config['scale_factor']
         
-        start_y = max(0, 20)
+        start_y = max(0, start_y_offset)
         end_y = min(h, start_y + score_region_height)
         start_x = max(0, (w - score_region_width) // 2)
         end_x = min(w, start_x + score_region_width)
         
         roi = frame[start_y:end_y, start_x:end_x]
         
-        scale_factor = 5
-        roi_resized = cv2.resize(roi, None, fx=scale_factor, fy=scale_factor, interpolation=cv2.INTER_LANCZOS4)
+        interpolation_map = {
+            'LANCZOS4': cv2.INTER_LANCZOS4,
+            'CUBIC': cv2.INTER_CUBIC,
+            'LINEAR': cv2.INTER_LINEAR
+        }
+        interp_method = interpolation_map.get(self.detection_config['interpolation'], cv2.INTER_LANCZOS4)
+        roi_resized = cv2.resize(roi, None, fx=scale_factor, fy=scale_factor, interpolation=interp_method)
         
+        ocr_config = config.get_section('vision')['ocr']
         results = self.reader.readtext(
             roi_resized,
-            text_threshold=0.1,
-            width_ths=0.5,
-            height_ths=0.5,
-            min_size=5,
-            detail=1
+            text_threshold=ocr_config['text_threshold'],
+            width_ths=ocr_config['width_threshold'],
+            height_ths=ocr_config['height_threshold'],
+            min_size=ocr_config['min_size'],
+            detail=self.display_config['defaults']['detail_level']
         )
         
         best_score_result = None
-        best_confidence = 0
+        best_confidence = self.display_config['defaults']['initial_confidence']
         
         for (bbox, text, confidence) in results:
             conf_value = float(confidence)
             
-            score_match = re.search(r'score\s*:?\s*(\d+)', text, re.IGNORECASE)
+            score_match = re.search(self.detection_config['pattern'], text, re.IGNORECASE)
             if score_match:
                 score_value = int(score_match.group(1))
-                if 0 <= score_value <= 99:
-                    if conf_value > 0.1 and (best_score_result is None or conf_value > best_confidence):
+                score_range = self.detection_config['score_range']
+                if score_range['min'] <= score_value <= score_range['max']:
+                    if conf_value > ocr_config['confidence_threshold'] and (best_score_result is None or conf_value > best_confidence):
                         points = np.array(bbox).astype(int)
                         points = points // scale_factor
                         
@@ -67,10 +91,11 @@ class ScoreDetector:
             self.last_valid_bbox = bbox
             return score, bbox
         
-        if self.last_valid_score >= 0:
+        invalid_score = self.display_config['defaults']['invalid_score']
+        if self.last_valid_score >= -invalid_score:
             return self.last_valid_score, self.last_valid_bbox
         
-        return -1, None
+        return invalid_score, None
     
     def detect_and_draw_score(self, frame):
         annotated_frame = frame.copy()
@@ -79,20 +104,29 @@ class ScoreDetector:
         
         if bbox is not None:
             x, y, w, h = bbox
-            cv2.rectangle(annotated_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            colors = self.display_config['colors']
+            thickness = self.display_config['rectangle_thickness']
+            cv2.rectangle(annotated_frame, (x, y), (x + w, y + h), colors['green'], thickness)
             
-            if score >= 0:
+            invalid_score = self.display_config['defaults']['invalid_score']
+            if score >= -invalid_score:
                 label = f"Score: {score}"
-                color = (0, 255, 0)
+                color = colors['green']
             else:
                 label = "Score region"
-                color = (0, 255, 255)
+                color = colors['yellow']
+            
+            font = getattr(cv2, self.display_config['font_face'])
+            font_size = self.display_config['font_sizes']['medium']
+            font_thickness = self.display_config['font_thickness']
+            label_offset = self.display_config['score_label_offset']
                 
-            cv2.putText(annotated_frame, label, (x, y - 10), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+            cv2.putText(annotated_frame, label, (x + label_offset[0], y - label_offset[1]), 
+                       font, font_size, color, font_thickness)
         
         return annotated_frame, score
     
     def cleanup(self):
-        self.last_valid_score = -1
+        invalid_score = self.display_config['defaults']['invalid_score']
+        self.last_valid_score = invalid_score
         self.last_valid_bbox = None

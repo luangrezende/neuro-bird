@@ -1,2 +1,7 @@
-# Neuro-Bird Dependencies
-# Add your project dependencies here
+opencv-python
+numpy
+mss
+easyocr
+torch
+neat-python
+pyyaml
