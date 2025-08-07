@@ -43,7 +43,8 @@ class ScoreDetector:
         start_y = max(0, start_y_offset)
         end_y = min(h, start_y + score_region_height)
         
-        if start_x_offset == -1:
+        center_indicator = self.detection_config['center_indicator']
+        if start_x_offset == center_indicator:
             start_x = max(0, (w - score_region_width) // 2)
         else:
             start_x = max(0, start_x_offset)
@@ -76,7 +77,8 @@ class ScoreDetector:
             
             score_match = re.search(self.detection_config['pattern'], text, re.IGNORECASE)
             if score_match:
-                score_value = int(score_match.group(1))
+                regex_group = self.detection_config['regex_group']
+                score_value = int(score_match.group(regex_group))
                 score_range = self.detection_config['score_range']
                 if score_range['min'] <= score_value <= score_range['max']:
                     if conf_value > ocr_config['confidence_threshold'] and (best_score_result is None or conf_value > best_confidence):

@@ -36,12 +36,14 @@ vision:
     region_width: 120
     start_y_offset: 100
     start_x_offset: 0  # -1 for center, or specific pixel value from left
+    center_indicator: -1  # Special value to indicate center positioning
     scale_factor: 3
     interpolation: "LINEAR" # also can use LANCZOS4, CUBIC and NEAREST
     score_range:
       min: 0
       max: 50
     pattern: "score\\s*:?\\s*(\\d+)"
+    regex_group: 1  # Which regex group contains the score number
     
   # Frame processing
   frame_processing:
@@ -91,6 +93,11 @@ vision:
       initial_confidence: 0
       detail_level: 1
       fps_target_fallback: 60
+      
+    # Formatting settings
+    formatting:
+      decimal_places_fps: 1  # For FPS display precision
+      decimal_places_time: 1  # For timing display precision
       
     # Test/Demo settings
     test_settings:

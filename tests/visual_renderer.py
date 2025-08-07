@@ -63,10 +63,12 @@ class VisualRenderer:
         font_size = self.display_config['font_sizes']['medium']
         font_thickness = self.display_config['font_thickness']
         fps_pos = self.display_config['text_positions']
+        decimal_places = self.display_config['formatting']['decimal_places_fps']
         
         cv2.putText(frame, "FPS: ", fps_pos['fps_label'], 
                    font, font_size, colors['green'], font_thickness)
-        cv2.putText(frame, f"{fps:.1f}", fps_pos['fps_value'], 
+        fps_format = f"{{:.{decimal_places}f}}"
+        cv2.putText(frame, fps_format.format(fps), fps_pos['fps_value'], 
                    font, font_size, colors['red'], font_thickness)
     
     def draw_score_info(self, frame, score):
@@ -92,10 +94,12 @@ class VisualRenderer:
         font_size = self.display_config['font_sizes']['medium']
         font_thickness = self.display_config['font_thickness']
         ocr_pos = self.display_config['text_positions']
+        decimal_places = self.display_config['formatting']['decimal_places_time']
         
         cv2.putText(frame, "OCR Time: ", ocr_pos['ocr_time_label'], 
                    font, font_size, colors['green'], font_thickness)
-        cv2.putText(frame, f"{avg_ocr_time:.1f}ms", ocr_pos['ocr_time_value'], 
+        time_format = f"{{:.{decimal_places}f}}ms"
+        cv2.putText(frame, time_format.format(avg_ocr_time), ocr_pos['ocr_time_value'], 
                    font, font_size, colors['red'], font_thickness)
     
     def get_window_title(self):
