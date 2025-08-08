@@ -1,5 +1,9 @@
+"""
+Visual rendering utilities for score detection feedback and debugging.
+"""
+from typing import Any, Dict, List, Optional, Tuple
+
 import cv2
-from typing import Dict, Any, Optional, List, Tuple
 
 class VisualRenderer:
     def __init__(self, config_section: str = 'vision'):
@@ -10,12 +14,6 @@ class VisualRenderer:
         
     def update_metric(self, key: str, value: Any):
         self.metrics[key] = value
-        
-    def update_metrics(self, metrics: Dict[str, Any]):
-        self.metrics.update(metrics)
-        
-    def get_metric(self, key: str, default=None):
-        return self.metrics.get(key, default)
         
     def draw_all_info(self, frame):
         self.draw_regions(frame)
@@ -34,14 +32,12 @@ class VisualRenderer:
         colors = self.display_config['colors']
         h, w = frame.shape[:2]
         
-        default_size = self.display_config['region_detection']['default_region_size']
-        default_pos = self.display_config['region_detection']['default_region_position']
         center_indicator = self.display_config['region_detection']['center_indicator']
         
-        region_height = region_config.get('region_height', default_size[0])
-        region_width = region_config.get('region_width', default_size[1])
-        start_y_offset = region_config.get('start_y_offset', default_pos[0])
-        start_x_offset = region_config.get('start_x_offset', default_pos[1])
+        region_height = region_config['region_height']
+        region_width = region_config['region_width']
+        start_y_offset = region_config['start_y_offset']
+        start_x_offset = region_config['start_x_offset']
         
         start_y = max(0, start_y_offset)
         end_y = min(h, start_y + region_height)
@@ -53,16 +49,20 @@ class VisualRenderer:
             
         end_x = min(w, start_x + region_width)
         
-        thickness = self.display_config['rectangle_thickness']
+        rect_props = self.display_config['rectangle_properties']
+        thickness = rect_props['region_thickness']
+        color_name = rect_props['region_color']
+        color = colors[color_name]
+        
         label = f"{region_name.replace('_', ' ').title()} Region"
-        self.draw_rectangle(frame, (start_x, start_y), (end_x, end_y), colors['yellow'], thickness, label)
+        self.draw_rectangle(frame, (start_x, start_y), (end_x, end_y), color, thickness, label)
         
     def draw_metrics(self, frame):
         for key, value in self.metrics.items():
             self.draw_metric(frame, key, value)
             
     def draw_metric(self, frame, metric_name: str, value: Any):
-        if not self.display_config.get(f'show_{metric_name}', True):
+        if not self.display_config[f'show_{metric_name}']:
             return
             
         colors = self.display_config['colors']
@@ -93,17 +93,36 @@ class VisualRenderer:
             return str(value)
         
     def draw_rectangle(self, frame, start_pos: Tuple[int, int], end_pos: Tuple[int, int], 
-                      color: List[int], thickness: int = 1, label: Optional[str] = None):
-        cv2.rectangle(frame, start_pos, end_pos, color, thickness)
+                      color: Optional[List[int]] = None, thickness: Optional[int] = None, 
+                      label: Optional[str] = None):
+        rect_props = self.display_config['rectangle_properties']
+        colors = self.display_config['colors']
+        
+        final_color: List[int]
+        if color is None:
+            color_name = rect_props['default_color']
+            final_color = colors[color_name]
+        else:
+            final_color = color
+        
+        final_thickness: int
+        if thickness is None:
+            final_thickness = rect_props['default_thickness']
+        else:
+            final_thickness = thickness
+            
+        cv2.rectangle(frame, start_pos, end_pos, final_color, final_thickness)
         
         if label:
             font = getattr(cv2, self.display_config['font_face'])
             font_size = self.display_config['font_sizes']['small']
             font_thickness = self.display_config['font_thickness']
             
-            label_offset = self.display_config['region_label_offset']
-            label_pos = (start_pos[0], max(label_offset + 5, start_pos[1] - label_offset))
-            cv2.putText(frame, label, label_pos, font, font_size, color, font_thickness)
+            rect_props = self.display_config['rectangle_properties']
+            label_offset = rect_props['label_offset']
+            label_margin = rect_props['label_margin']
+            label_pos = (start_pos[0], max(label_offset + label_margin, start_pos[1] - label_offset))
+            cv2.putText(frame, label, label_pos, font, font_size, final_color, font_thickness)
             
     def get_window_title(self) -> str:
         return self.display_config['window_title']

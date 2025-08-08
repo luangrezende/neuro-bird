@@ -3,5 +3,4 @@ numpy
 mss
 easyocr
 torch
-neat-python
 pyyaml

@@ -1,113 +1,114 @@
-# Neuro-Bird Configuration
+# Neuro-Bird Configuration File
+# This file contains all project parameters for complete customization
+# without code changes. All values are fully configurable and documented.
 
 # Vision Module Configuration
 vision:
-  # Screen capture settings
+  # Screen capture settings - Define the game window region
   screen_capture:
     region:
-      top: 275
-      left: 520
-      width: 400
-      height: 700
-    fps_target: 60
+      top: 275        # Y coordinate of capture region top-left corner
+      left: 520       # X coordinate of capture region top-left corner
+      width: 400      # Width of capture region in pixels
+      height: 700     # Height of capture region in pixels
     
-  # OCR settings
+  # OCR settings - GPU acceleration mandatory, no CPU fallback
   ocr:
-    languages: ["en"]
-    gpu: true
-    verbose: false
-    confidence_threshold: 0.3
-    text_threshold: 0.3
-    width_threshold: 0.5
-    height_threshold: 0.5
-    min_size: 5
+    languages: ["en"]           # Language codes for OCR recognition
+    gpu: true                   # GPU acceleration (MANDATORY - no CPU fallback)
+    verbose: false              # Enable verbose OCR output for debugging
+    confidence_threshold: 0.3   # Minimum confidence for text recognition
+    text_threshold: 0.3         # Text detection threshold
+    width_threshold: 0.5        # Width threshold for text boxes
+    height_threshold: 0.5       # Height threshold for text boxes
+    min_size: 5                 # Minimum text box size in pixels
     
-  # Score detection
+  # Score detection - Configurable region and preprocessing parameters
   score_detection:
-    region_height: 95
-    region_width: 110
-    start_y_offset: 100
-    start_x_offset: 0  # -1 for center, or specific pixel value from left
-    center_indicator: -1  # Special value to indicate center positioning
-    scale_factor: 3
-    interpolation: "LINEAR" # LANCZOS4, CUBIC, LINEAR
+    region_height: 95           # Height of score detection region
+    region_width: 110           # Width of score detection region
+    start_y_offset: 100         # Y offset from capture region top
+    start_x_offset: 0           # X offset from capture region left (-1 for center)
+    center_indicator: -1        # Special value indicating center positioning
+    scale_factor: 3             # Upscaling factor for better OCR accuracy
+    interpolation: "LINEAR"     # Interpolation method: LANCZOS4, CUBIC, LINEAR
     score_range:
-      min: 0
-      max: 50
-    pattern: "score\\s*:?\\s*(\\d+)"
-    regex_group: 1  # Which regex group contains the score number
+      min: 0                    # Minimum valid score value
+      max: 99                   # Maximum valid score value
+    pattern: "score\\s*:?\\s*(\\d+)"  # Regex pattern for score detection
+    regex_group: 1              # Which regex group contains the score number
     
-  # UI/Display settings
+  # UI/Display settings - Visual feedback and interface configuration
   display:
-    window_title: "Flappy Bird Score Detection"
-    show_fps: true
-    show_score: true
-    show_ocr_time: true
+    window_title: "Flappy Bird Score Detection"  # OpenCV window title for display
+    show_fps: true                               # Display frames per second counter
+    show_score: true                             # Display current detected score
+    show_ocr_time: true                          # Display OCR processing time
     
-    # Text properties
-    font_face: "FONT_HERSHEY_SIMPLEX"
+    # Text properties - Font settings for on-screen display
+    font_face: "FONT_HERSHEY_SIMPLEX"           # OpenCV font type for text rendering
     font_sizes:
-      small: 0.4
-      medium: 0.5
-      large: 0.8
-    font_thickness: 1
+      small: 0.4                                # Small text size scale factor
+      medium: 0.5                               # Medium text size scale factor
+      large: 0.8                                # Large text size scale factor
+    font_thickness: 1                           # Text line thickness in pixels
     
-    # Colors (BGR format)
+    # Colors (BGR format) - OpenCV uses Blue-Green-Red color format
     colors:
-      green: [0, 255, 0]
-      red: [0, 0, 255] 
-      yellow: [0, 255, 255]
-      white: [255, 255, 255]
+      green: [0, 255, 0]                        # Bright green for positive indicators
+      red: [0, 0, 255]                          # Bright red for errors or alerts
+      yellow: [0, 255, 255]                     # Bright yellow for warnings or highlights
+      white: [255, 255, 255]                    # Pure white for text and borders
       
-    # Text positions
+    # Text positions - Screen coordinates for UI element placement
     text_positions:
-      fps_label: [10, 25]
-      fps_value: [55, 25]
-      score_label: [10, 50]
-      score_value: [70, 50]
-      ocr_time_label: [235, 25]
-      ocr_time_value: [325, 25]
+      fps_label: [10, 25]                       # FPS label position (x, y pixels)
+      fps_value: [55, 25]                       # FPS value position (x, y pixels)
+      score_label: [10, 50]                     # Score label position (x, y pixels)
+      score_value: [70, 50]                     # Score value position (x, y pixels)
+      ocr_time_label: [235, 25]                 # OCR time label position (x, y pixels)
+      ocr_time_value: [325, 25]                 # OCR time value position (x, y pixels)
       
-    # Rectangle properties
-    rectangle_thickness: 2
-    region_label_offset: 5
+    # Rectangle properties - Standardized rectangle rendering system
+    # This section provides consistent defaults for all rectangle drawing operations
+    rectangle_properties:
+      default_thickness: 1          # Default rectangle line thickness (1 pixel = thin, clean lines)
+      default_color: "green"        # Default rectangle color (references colors section above)
+      region_thickness: 1           # Thickness for region detection rectangles (slightly thicker for visibility)
+      region_color: "yellow"        # Color for region detection rectangles (bright for contrast)
+      label_offset: 5               # Offset for rectangle labels from rectangle border
+      label_margin: 5               # Additional margin for label positioning calculations
     
-    # Region detection settings
+    # Region detection settings - Automatic region detection configuration
     region_detection:
-      keys: ["region_height", "region_width", "start_y_offset", "start_x_offset"]
-      center_indicator: -1
-      default_region_size: [100, 100]
-      default_region_position: [0, 0]
+      keys: ["region_height", "region_width", "start_y_offset", "start_x_offset"]  # Config keys to identify regions
+      center_indicator: -1                      # Special value to indicate centered positioning
     
-    # Default values
+    # Default values - Fallback values for error conditions
     defaults:
-      invalid_score: 0
-      initial_confidence: 0
-      detail_level: 1
+      invalid_score: 0                          # Score value when detection fails or invalid
+      initial_confidence: 0                     # Starting confidence level for measurements
+      detail_level: 1                           # OCR detail level (0=coordinates only, 1=full details)
       
-    # Formatting settings
+    # Formatting settings - Number display precision configuration
     formatting:
-      decimal_places_fps: 1  # FPS display precision
-      decimal_places_time: 1  # Timing display precision
+      decimal_places_fps: 1                     # FPS display precision (digits after decimal)
+      decimal_places_time: 1                    # Timing display precision (digits after decimal)
       
-    # Test settings
+    # Test settings - Parameters for testing and debugging mode
     test_settings:
-      frame_increment: 1
-      ms_conversion_factor: 1000
-      recent_times_average: 10
-      ocr_interval: 60  # Run OCR every N frames
-      quit_key: 'q'
-      key_wait_ms: 1
-      key_mask: 0xFF
+      frame_increment: 1                        # Frame counter increment per loop iteration
+      ms_conversion_factor: 1000                # Convert seconds to milliseconds (1000ms = 1s)
+      recent_times_average: 10                  # Number of recent OCR times to average for display
+      ocr_interval: 60                          # Run OCR every N frames to reduce CPU usage
+      quit_key: 'q'                             # Keyboard key to quit the application
+      key_wait_ms: 1                            # OpenCV key wait timeout in milliseconds
+      key_mask: 0xFF                            # Keyboard input bitmask for key detection
 
-# Utilities Configuration
+# Utilities Configuration - Core system utilities and infrastructure settings
 utils:
-  # Logging settings
-  logging:
-    level: "INFO"
-    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    file_output: true
-    console_output: true
-    log_dir: "logs"
-    max_log_size_mb: 10
-    backup_count: 5
+  # Configuration file handling settings - YAML file processing parameters
+  yaml_settings:
+    encoding: "utf-8"           # File encoding for YAML operations (UTF-8 for international support)
+    indent_spaces: 2            # Number of spaces for YAML indentation (standard formatting)
+    flow_style: false           # Use block style instead of flow style (more readable)

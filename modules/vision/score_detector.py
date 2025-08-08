@@ -1,13 +1,13 @@
-import cv2
-import numpy as np
-import easyocr
+"""
+Score detection module with GPU-accelerated OCR.
+"""
 import re
-import sys
-import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from utils import config
-from env import GameState
+import cv2
+import easyocr
+
+from ..env.game_state import GameState
+from ..utils.config import config
 
 class ScoreDetector:
     def __init__(self):
@@ -53,7 +53,7 @@ class ScoreDetector:
             'CUBIC': cv2.INTER_CUBIC,
             'LINEAR': cv2.INTER_LINEAR
         }
-        interp_method = interpolation_map.get(self.detection_config['interpolation'], cv2.INTER_LANCZOS4)
+        interp_method = interpolation_map[self.detection_config['interpolation']]
         roi_resized = cv2.resize(roi, None, fx=scale_factor, fy=scale_factor, interpolation=interp_method)
         
         ocr_config = config.get_section('vision')['ocr']
@@ -69,7 +69,7 @@ class ScoreDetector:
         
         best_score = self.invalid_score
         
-        for (bbox, text, confidence) in results:
+        for (_, text, confidence) in results:
             conf_value = float(confidence)
             
             score_match = re.search(self.detection_config['pattern'], text, re.IGNORECASE)

@@ -1,9 +1,9 @@
-import sys
-import os
+"""
+Thread-safe game state management with singleton pattern.
+"""
 import threading
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from utils import config
+from ..utils.config import config
 
 class GameState:
     _instance = None
@@ -30,7 +30,3 @@ class GameState:
     def get_score(self) -> int:
         with self._score_lock:
             return self.score
-    
-    def reset_score(self) -> None:
-        with self._score_lock:
-            self.score = config.get_section('vision')['display']['defaults']['invalid_score']
