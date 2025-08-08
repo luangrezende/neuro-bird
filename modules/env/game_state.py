@@ -3,7 +3,7 @@ import os
 import threading
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from utils.config import config
+from utils import config
 
 class GameState:
     _instance = None
@@ -19,8 +19,7 @@ class GameState:
     
     def __init__(self):
         if not GameState._initialized:
-            invalid_score = config.get_section('vision')['display']['defaults']['invalid_score']
-            self.score = invalid_score
+            self.score = config.get_section('vision')['display']['defaults']['invalid_score']
             self._score_lock = threading.Lock()
             GameState._initialized = True
     
@@ -34,5 +33,4 @@ class GameState:
     
     def reset_score(self) -> None:
         with self._score_lock:
-            invalid_score = config.get_section('vision')['display']['defaults']['invalid_score']
-            self.score = invalid_score
+            self.score = config.get_section('vision')['display']['defaults']['invalid_score']

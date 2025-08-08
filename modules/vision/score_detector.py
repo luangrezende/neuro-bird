@@ -6,7 +6,7 @@ import sys
 import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from utils.config import config
+from utils import config
 from env import GameState
 
 class ScoreDetector:
@@ -26,8 +26,7 @@ class ScoreDetector:
         )
         
         self.detection_config = config.get_section('vision')['score_detection']
-        invalid_score = config.get_section('vision')['display']['defaults']['invalid_score']
-        self.invalid_score = invalid_score
+        self.invalid_score = config.get_section('vision')['display']['defaults']['invalid_score']
         
     def detect_and_update(self, frame):
         h, w = frame.shape[:2]
@@ -75,8 +74,7 @@ class ScoreDetector:
             
             score_match = re.search(self.detection_config['pattern'], text, re.IGNORECASE)
             if score_match:
-                regex_group = self.detection_config['regex_group']
-                score_value = int(score_match.group(regex_group))
+                score_value = int(score_match.group(self.detection_config['regex_group']))
                 score_range = self.detection_config['score_range']
                 if score_range['min'] <= score_value <= score_range['max']:
                     if conf_value > ocr_config['confidence_threshold']:

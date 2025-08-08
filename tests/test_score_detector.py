@@ -5,10 +5,10 @@ import mss
 import time
 import numpy as np
 
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'modules'))
 from vision import ScoreDetector
-from utils.config import config
-from visual_renderer import VisualRenderer
+from utils import config, VisualRenderer
 
 def main():
     detector = ScoreDetector()
@@ -25,9 +25,7 @@ def main():
     }
     
     display_config = config.get_section('vision')['display']
-    invalid_score = display_config['defaults']['invalid_score']
     initial_confidence = display_config['defaults']['initial_confidence']
-    fps_target_fallback = display_config['defaults']['fps_target_fallback']
     test_settings = display_config['test_settings']
     
     frame_count = initial_confidence
@@ -59,8 +57,6 @@ def main():
             
             score = detector.game_state.get_score()
             renderer.update_score(score)
-            
-            renderer.draw_detection_region(annotated_frame)
             
             if ocr_times:
                 recent_times = test_settings['recent_times_average']

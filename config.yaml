@@ -1,5 +1,4 @@
 # Neuro-Bird Configuration
-# Streamlined configuration with only actively used parameters
 
 # Vision Module Configuration
 vision:
@@ -25,13 +24,13 @@ vision:
     
   # Score detection
   score_detection:
-    region_height: 100
-    region_width: 120
+    region_height: 95
+    region_width: 110
     start_y_offset: 100
     start_x_offset: 0  # -1 for center, or specific pixel value from left
     center_indicator: -1  # Special value to indicate center positioning
     scale_factor: 3
-    interpolation: "LINEAR" # also can use LANCZOS4, CUBIC and NEAREST
+    interpolation: "LINEAR" # LANCZOS4, CUBIC, LINEAR
     score_range:
       min: 0
       max: 50
@@ -46,13 +45,12 @@ vision:
     show_ocr_time: true
     
     # Text properties
-    font_face: "FONT_HERSHEY_SIMPLEX" # OpenCV font
+    font_face: "FONT_HERSHEY_SIMPLEX"
     font_sizes:
       small: 0.4
       medium: 0.5
       large: 0.8
     font_thickness: 1
-    large_font_thickness: 2
     
     # Colors (BGR format)
     colors:
@@ -72,26 +70,32 @@ vision:
       
     # Rectangle properties
     rectangle_thickness: 2
-    score_label_offset: [0, 15]
+    region_label_offset: 5
     
-    # Default values and thresholds
+    # Region detection settings
+    region_detection:
+      keys: ["region_height", "region_width", "start_y_offset", "start_x_offset"]
+      center_indicator: -1
+      default_region_size: [100, 100]
+      default_region_position: [0, 0]
+    
+    # Default values
     defaults:
       invalid_score: 0
       initial_confidence: 0
       detail_level: 1
-      fps_target_fallback: 60
       
     # Formatting settings
     formatting:
-      decimal_places_fps: 1  # For FPS display precision
-      decimal_places_time: 1  # For timing display precision
+      decimal_places_fps: 1  # FPS display precision
+      decimal_places_time: 1  # Timing display precision
       
-    # Test/Demo settings
+    # Test settings
     test_settings:
       frame_increment: 1
       ms_conversion_factor: 1000
       recent_times_average: 10
-      ocr_interval: 60  # Run OCR every N frames (lower = more frequent)
+      ocr_interval: 60  # Run OCR every N frames
       quit_key: 'q'
       key_wait_ms: 1
       key_mask: 0xFF
